@@ -12,11 +12,11 @@ import { theme } from '../core/theme';
 import BackButton from '../components/BackButton';
 
 const validationSchema = Yup.object().shape({
-  // nameClient: Yup.string().required().label("Nom Client"),
-  // addressClient: Yup.string().required().label("Adresse Client"),
-  // email: Yup.string().required().email().label("Email"), 
-  // tel: Yup.number().required().label("Tel"),
-  // nameComercial: Yup.string().required().label("Nom Commercial"),
+  nameClient: Yup.string().required().label("Nom Client"),
+  addressClient: Yup.string().required().label("Adresse Client"),
+  email: Yup.string().required().email().label("Email"), 
+  tel: Yup.number().required().label("Tel"),
+  nameComercial: Yup.string().required().label("Nom Commercial"),
 });
 
 export default function CommandScreen({ navigation }) {
@@ -51,35 +51,36 @@ export default function CommandScreen({ navigation }) {
             autoCapitalize="none"
             autoCorrect={false}
             name="nameClient"
-            label="Nom Client"
+            label="Customer Name"
           />
           <FormField
             autoCapitalize="none"
             autoCorrect={false}
             name="addressClient"
-            label="Adress Client"
+            label="Customer Address"
           />
           <FormField
             autoCapitalize="none"
             autoCorrect={false}
             keyboardType="email-address"
             name="email"
-            label="Email Client"
+            label="Customer email"
             textContentType="emailAddress"
           />
           <FormField
             autoCapitalize="none"
             autoCorrect={false}
+            keyboardType="numeric"
             name="tel"
-            label="Téléphone"
+            label="Customer Tel"
           />
           <FormField
             autoCapitalize="none"
             autoCorrect={false}
             name="nameComercial"
-            label="Nom & Prénom Commercial"
+            label="Commercial  name"
           />
-          <SubmitButton style={styles.button} title="Commander" />
+          <SubmitButton style={styles.button} title="To order" />
         </Stack>
       </Form>
     </Background>

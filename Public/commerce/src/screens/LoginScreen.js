@@ -13,33 +13,32 @@ import { Form,
 import { theme } from '../core/theme';
 
 const validationSchema = Yup.object().shape({
-  // email: Yup.string().required().email().label("Email"),
-  // password: Yup.string().required().min(4).label("Password"),
+  email: Yup.string().required().email().label("Email"),
+  password: Yup.string().required().min(4).label("Password"),
 });
 
 export default function LoginScreen({ navigation }) {
 
   const [loginFailed, setLoginFailed] = useState(false);
 
-  let checkAuth = false;
+  let [logged, setLogged] = useState(false);
 
   const handleSubmit = async ({ email, password }) => {
     const user = Users.filter(x => {return x.email === email && x.password === password});
-
-    if(user.length === 1){
+    navigation.navigate('Commands')
+     if(user.length === 1){
+     setLogged(false);
       navigation.navigate('Commands')
-    }
+     }
     else
-      checkAuth = false;
-      
-    console.log(user.length);
+    setLogged(true)
   };
-
+  
   return (
     <Background>
       
-      <Text style={styles.title}>Signin !</Text>
-      {checkAuth && <Text>Username</Text>}
+      <Text style={styles.title}>Sign in</Text>
+      {logged && <Text style={{color:theme.colors.primary, marginLeft: 25}}>Credential invalid</Text>}
       <Form
         initialValues={{ email: "", password: "" }}
         onSubmit={handleSubmit}
@@ -66,7 +65,7 @@ export default function LoginScreen({ navigation }) {
             secureTextEntry
             textContentType="password"
           />
-          <SubmitButton style={styles.button} title="Se connecter" />
+          <SubmitButton style={styles.button} title="Connexion" />
         </Stack>
       </Form>
     </Background>

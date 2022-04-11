@@ -1,59 +1,92 @@
 import React from 'react';
-import { View, Text, FlatList, SafeAreaView, StatusBar, StyleSheet } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import { Text, View, FlatList, SafeAreaView, StatusBar, StyleSheet } from 'react-native';
 import { ListItem } from "@react-native-material/core";
-import email from 'react-native-email';
+import * as MailComposer from 'expo-mail-composer';
+
+import * as FileSystem from 'expo-file-system';
+import XLSX from 'xlsx';
 
 import Button from '../components/Button';
 import { theme } from '../core/theme';
 
-const Item = ({ title }) => (
-  <View style={Styles.item}>
-    <Text style={Styles.title}>{title}</Text>
-    {/* <ListItem title="oui" /> */}
-  </View>
-);
-
-export default function DetailScreen({route}) {
+export default function DetailScreen({route, navigation}) {
 
   const obj = route.params;
   const body = JSON.stringify(obj.values).replace(/['"]+/g, '').slice(1, -1).replace(/[,]/g, '\n');
   let products = body+'\n'+
-                 JSON.stringify(obj.barcode).replace(/['"]+/g, '').slice(1, -1)+'\n'+
-                 JSON.stringify(obj.quantity).replace(/['"]+/g, '').slice(1, -1);
+               JSON.stringify(obj.excel).replace(/['"]+/g, '').slice(1, -1).replace(/[{,]/g, '\n').replace(/[}]/g, '');
+               
+  let prod = JSON.stringify(obj.excel).replace(/['"]+/g, '').slice(1, -1).replace(/[{,]/g, '\n').replace(/[}]/g, '');
+  
+  let result = [
+    {"Customer Name": Object.values(obj.values)[0],
+    "Customer Address": Object.values(obj.values)[1],
+    "Customer email": Object.values(obj.values)[2],
+    "Tel": Object.values(obj.values)[3],
+    "Commercial name": Object.values(obj.values)[4],
+    }
+  ];
 
-  console.log(obj.values);
+  Object.keys(obj.excel).map(key => ({[key]: result.push(obj.excel[key])}));
 
-  const renderItem = ({ item }) => (
-      <ListItem title={item} />
+  var ws = XLSX.utils.json_to_sheet(result, 
+                  {header:["Customer Name",
+                           "Customer Address",
+                           "Customer email",
+                           "Tel",
+                           "Commercial name"]});
+  var wb = XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(wb, ws, "Commercial");
+  const wbout = XLSX.write(wb, {
+    type: 'base64',
+    bookType: "xlsx"
+  });
+  
+  const uri = FileSystem.cacheDirectory + 'commercial.xlsx';
+  console.log(`Writing to ${JSON.stringify(uri)} `);
+  FileSystem.writeAsStringAsync(uri, wbout, {
+    encoding: FileSystem.EncodingType.Base64
+  });
+
+  const list = [
+    "Customer name",
+    "Customer Address",
+    "Customer email",
+    "Customer tel",
+    "Commercial name",
+  ];
+
+  const renderItem = ({ item, index }) => (
+      <ListItem title={list[index]+': '+item} />
   );
 
-  const renderItemData = ({ item, index }) => (
-    <ListItem title={item} trailing={<Text style={Styles.badget}>{obj.quantity[index].toString()}</Text>} />
+  const renderItemData = ({ item }) => (
+    <ListItem title={item}  />
   );
 
   const handleEmail = () => {
-    const to = ['tiaan@email.com'] // string or array of email addresses
-    email(to, {
-        // Optional additional arguments
-        // cc: ['bazzy@moo.com', 'doooo@daaa.com'], // string or array of email addresses
-        // bcc: 'mee@mee.com', // string or array of email addresses
-        subject: 'Quotation Products',
-        body: products
-    }).catch(console.error)
+    const to = ['anja@sadu.be']
+    MailComposer.composeAsync({
+      recipients: 
+      to,
+      subject:  'Customer Command',
+      body: products,
+      attachments: [uri]
+    });
+
+	navigation.navigate('CommandScreen');
   }
   
   return (
     <SafeAreaView style={Styles.container}>
+      <View style={Styles.textbox}>
+       <Text style={Styles.text}>{prod}</Text>
+      </View>
       <FlatList
         data={Object.values(obj.values)}
         keyExtractor={(item, index) => index.toString()}
         renderItem={renderItem}
-      />
-      <FlatList
-        data={Object.values(obj.barcode)}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={renderItemData}
       />
       <Button title="Send Mail" onPress={handleEmail} />
     </SafeAreaView>
@@ -81,5 +114,16 @@ const Styles = StyleSheet.create({
     backgroundColor: theme.colors.primary ,
     borderRadius: 20,
     color: "#fff"
-  }
+  },
+  textbox: {
+    backgroundColor: '#fff',
+    padding: 10,
+    paddingHorizontal: 14,
+    marginVertical: 25
+  },
+ text: {
+   color: '#000',
+   fontSize: 16,
+   fontWeight: '700'
+ }
 })

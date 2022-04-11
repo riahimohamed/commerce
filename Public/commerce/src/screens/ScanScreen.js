@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Modal, StyleSheet } from 'react-native';
-import { useRoute } from '@react-navigation/native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import { HStack } from "@react-native-material/core";
 
@@ -14,13 +13,12 @@ export default function ScanScreen({route, navigation}) {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const [text, onChangeText] = useState();
+  const [text, onChangeText] = useState('');
 
   const [type, setType] = useState();
   const [data, setData] = useState();
 
-  const [ barcode, setBarcode ] = useState([]);
-  const [ quantity, setQuantity ] = useState([]);
+  const [excel, setexcel] = useState([]);
 
   useEffect(() => {
     (async () => {
@@ -46,11 +44,9 @@ export default function ScanScreen({route, navigation}) {
   }
 
   const handleData = (quntity) => {
-    quantity.push(text);
-    setQuantity(quantity);
 
-    barcode.push(data);
-    setBarcode(barcode);
+    excel.push({ "code": data, "quantity": text });
+    setexcel(excel);
 
     onChangeText('');
   }
@@ -70,8 +66,8 @@ export default function ScanScreen({route, navigation}) {
         >
           <View style={styles.centeredView}>
             <View style={styles.modalView}>
-              <Text style={styles.modalText}>Bar code with type ${type}</Text>
-              <Text style={styles.modalText}>data ${data} has been scanned!</Text>
+              {/* <Text style={styles.modalText}>Bar code with type ${type}</Text> */}
+              <Text style={styles.modalText}>ID {data}</Text>
               <TextInput
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -83,7 +79,7 @@ export default function ScanScreen({route, navigation}) {
               />
               <HStack m={4} spacing={6}>
                 <View>
-                  <Button title={'Tap to Scan Again'} onPress={() => {
+                  <Button title={'Tap to Scan Again'} disable={text !== ''} onPress={() => {
                     handleData(text);
                     setScanned(false)}
                   } />
@@ -93,7 +89,7 @@ export default function ScanScreen({route, navigation}) {
           </View>
         </Modal>}
         <View style={{bottom: 20}}>
-          <Button title={'Details'} onPress={() => {navigation.navigate("Details", {barcode, quantity, values} )}} />
+          <Button title={'Details'} onPress={() => {navigation.navigate("Details", {excel, values} )}} />
         </View>
     </View>
   );
